@@ -16,6 +16,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "django-stubs>=5.2.1",
+    "django-types>=0.21.0",
     "pytest-django>=4.11.1",
     "ruff>=0.12.0",
 ]

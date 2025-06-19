@@ -104,7 +104,7 @@ class AccountsTest(TestCase):
         patch_data = {"first_name": "ChangedViaPatch"}
         res = self.tclient.patch(
             "/me",
-            headers={"Authorization": f"Bearer {refresh.access_token}"},
+            headers={"Authorization": f"Bearer {refresh.access_token}"}, #type: ignore
             json=patch_data
         )
         # Depending on your intended design, 200 or 204 might be appropriate
@@ -121,7 +121,7 @@ class AccountsTest(TestCase):
         # Send delete request
         res = self.tclient.delete(
             "/me",
-            headers={"Authorization": f"Bearer {refresh.access_token}"}
+            headers={"Authorization": f"Bearer {refresh.access_token}"} #type: ignore
         )
 
         # Expect user deletion – you might choose 204 or 200 as well

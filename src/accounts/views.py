@@ -37,7 +37,7 @@ def update_user_profile(request, payload: PatchDict[UserPatch]):
         if hasattr(user, field) and value is not None:
             setattr(user, field, value)
     user.save()
-    user.profile.save()
+    user.profile.save() #type: ignore
     return user
 
 @router.delete("/me", auth=TokenBasedAuth(), response={204: None})
@@ -69,7 +69,7 @@ def create_user(request, payload: UserRegisterIn):
         data = {
                 "user": new_user,
                 "refresh": str(refresh),
-                "access": str(refresh.access_token)
+                "access": str(refresh.access_token) #type: ignore
         }
         return 201, UserRegisterOut.model_validate(data)
     except Exception as e:
