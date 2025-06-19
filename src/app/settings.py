@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "ninja_jwt",
     "accounts.apps.AccountsConfig",
     "posts.apps.PostsConfig",
+    "reactions.apps.ReactionsConfig",
     "comments.apps.CommentsConfig"
 ]
 
