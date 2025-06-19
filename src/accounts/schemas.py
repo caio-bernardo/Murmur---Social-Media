@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
-from ninja import Field
+from ninja import Field, ModelSchema
 from ninja.schema import Schema
-from ninja_jwt.schema import TokenRefreshOutputSchema
-from pydantic import EmailStr, validator
+from ninja_jwt.schema import TokenObtainPairOutputSchema
+from pydantic import EmailStr, field_validator
 from pydantic.types import SecretStr
 
 from accounts.models import Profile
@@ -10,7 +10,7 @@ from accounts.models import Profile
 User = get_user_model()
 #  Registration
 
-class UserRegisterInSchema(Schema):
+class UserRegisterIn(Schema):
     username: str = Field(..., description="User unique indetifier name")
     first_name: str = Field(..., description="User's first name")
     last_name: str = Field(..., description="User's last name")
@@ -18,47 +18,49 @@ class UserRegisterInSchema(Schema):
     password: SecretStr = Field(..., min_length=8, max_length=24, description="User's password. Must be at least 8 characters long.")
     password_confirm: SecretStr
 
-    @validator("password_confirm")
+    @field_validator("password_confirm", mode="after")
+    @classmethod
     def password_match(cls, v, values, **kwargs):
-        if 'password' in values and v != values["password"]:
+        if 'password' in values.data and v != values.data["password"]:
             raise ValueError("Passwords don't match.")
         return v
 
-class UserRegisterOutSchema(Schema):
-    token: TokenRefreshOutputSchema
-
-# Access
-
-class ProfilePublicSchema(Schema):
+class ProfilePublic(ModelSchema):
     class Meta:
         model = Profile
-        fields = ["bio", "created_at"]
+        fields = ["bio", "created_at", "user"]
 
-class ProfilePrivateSchema(Schema):
+class ProfilePrivate(ModelSchema):
     class Meta:
-        model=Profile
-        fields = ["bio", "created_at", "updated_at"]
+        model = Profile
+        exclude = ["id", "user"]
 
-class UserPublicSchema(Schema):
-    profile: ProfilePublicSchema
+class UserPrivate(ModelSchema):
+    profile: ProfilePrivate
+    class Meta:
+        model = User
+        exclude = ["id", "password"]
+
+class UserPublic(ModelSchema):
+    profile: ProfilePublic
     class Meta:
         model = User
         fields = ["username", "first_name", "last_name"]
 
-class UserPrivateSchema(Schema):
-    profile: ProfilePrivateSchema
-    class Meta:
-        model = User
-        fields = ["username", "first_name", "last_name", "email"]
+class UserRegisterOut(Schema):
+    user: UserPrivate
+    access: str
+    refresh: str
 
-# Update
-class ProfilePathSchema(Schema):
+class ProfilePatch(ModelSchema):
     class Meta:
         model = Profile
         fields = ["bio"]
-        fields_optional = "__all__"
+        fields_optional = ["__all__"]
 
-class UserPatchSchema(Schema):
+class UserPatch(ModelSchema):
+    profile: ProfilePatch
     class Meta:
-        model = Profile
+        model = User
         fields = ["username", "email", "first_name", "last_name"]
+        fields_optional = ["__all__"]

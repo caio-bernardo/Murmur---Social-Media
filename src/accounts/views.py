@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from ninja import PatchDict
 from ninja.router import Router
 from ninja.errors import HttpError
@@ -6,12 +7,13 @@ from ninja_jwt.tokens import RefreshToken
 
 from accounts.models import Profile
 from accounts.schemas import (
-    ProfilePrivateSchema,
-    UserPatchSchema,
-    UserPrivateSchema,
-    UserPublicSchema,
-    UserRegisterInSchema,
-    UserRegisterOutSchema,
+    ProfilePrivate,
+    ProfilePublic,
+    UserPatch,
+    UserPrivate,
+    UserPublic,
+    UserRegisterIn,
+    UserRegisterOut,
 )
 from app.security import TokenBasedAuth
 
@@ -19,52 +21,44 @@ from app.security import TokenBasedAuth
 
 router = Router()
 
-@router.get("/me", auth=TokenBasedAuth, response=UserPrivateSchema)
+
+@router.get("/me", auth=TokenBasedAuth(), response=UserPrivate)
 def get_user_profile(request):
     """
     Get private version of a user's profile.
     """
-    try:
-        profile = Profile.objects.get(user=request.auth)
-    except Exception as e:
-        raise HttpError(500, f"Failed to retrieve user: {e}")
-    else:
-        return UserPrivateSchema(
-            profile=ProfilePrivateSchema.model_validate(profile),
-            **request.auth
-        )
+    return request.auth
 
-@router.patch("/me", auth=TokenBasedAuth, response=UserPrivateSchema)
-def update_user_profile(request, payload: PatchDict[UserPatchSchema]):
+
+@router.patch("/me", auth=TokenBasedAuth(), response=UserPrivate)
+def update_user_profile(request, payload: PatchDict[UserPatch]):
     """
     Update user's profile and internal attributes.
     """
-    pass
+    user = get_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
+    for field, value in payload.items():
+        if hasattr(user, field) and value is not None:
+            setattr(user, field, value)
+    user.save()
+    user.profile.save()
+    return user
 
-@router.delete("/me", auth=TokenBasedAuth)
+@router.delete("/me", auth=TokenBasedAuth(), response={204: None})
 def delete_user(request):
     """
     Delete a user.
     """
-    pass
+    user = request.auth
+    user.delete()
+    return 204, None
 
-@router.get("/{username}", response=UserPublicSchema)
-async def get_public_user(request, username: str):
-    """
-    See public version of a user's profile.
-    """
-    try:
-        return await User.objects.aget(username=username)
-    except Exception as e:
-        raise HttpError(500, f"Failed to retrieve user: {e}")
-
-@router.post("/register", response=UserRegisterOutSchema)
-def create_user(request, payload: UserRegisterInSchema):
+@router.post("/register", response={201: UserRegisterOut})
+def create_user(request, payload: UserRegisterIn):
     """
     Register a new user.
     """
-    if User.objects.filter(email__iexact=payload.email).exists():
-        raise HttpError(409, "An account already exists under this email")
+    if User.objects.filter(username__exact=payload.username).exists():
+        raise HttpError(409, "An account already exists under this username")
 
     try:
         new_user = User.objects.create_user(
@@ -75,6 +69,23 @@ def create_user(request, payload: UserRegisterInSchema):
             last_name=payload.last_name
         )
         refresh = RefreshToken.for_user(new_user)
-        return UserRegisterOutSchema.model_validate(refresh)
+        data = {
+                "user": new_user,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token)
+        }
+        return 201, UserRegisterOut.model_validate(data)
     except Exception as e:
         raise HttpError(500, f"Failed to create user: {e}")
+
+
+@router.get("/{username}", response=UserPublic)
+def get_public_user(request, username: str):
+    """
+    See public version of a user's profile.
+    """
+    try:
+        res = get_object_or_404(User.objects.select_related("profile"), username=username)
+        return res
+    except Exception as e:
+        raise HttpError(500, f"Failed to retrieve user: {e}")

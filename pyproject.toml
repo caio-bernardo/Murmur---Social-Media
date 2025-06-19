@@ -22,6 +22,7 @@ dev = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "app.settings"
+python_files = ["test_*.py", "*_test.py", "testing/*.py", "tests.py"]
 
 [tool.pyright]
 venv = ".venv"
