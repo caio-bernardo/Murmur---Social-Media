@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     "ninja_extra",
     "ninja_jwt",
     "accounts.apps.AccountsConfig",
-    "posts.apps.PostsConfig"
+    "posts.apps.PostsConfig",
+    "comments.apps.CommentsConfig"
 ]
 
 MIDDLEWARE = [
