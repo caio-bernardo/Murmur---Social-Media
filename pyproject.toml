@@ -1,7 +1,7 @@
 [project]
-name = "djninja"
+name = "murmur"
 version = "0.1.0"
-description = "Add your description here"
+description = "A social media showcase project"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -10,6 +10,7 @@ dependencies = [
     "django-ninja-jwt[crypto]>=5.3.7",
     "psycopg2-binary>=2.9.10",
     "pydantic[email]>=2.11.7",
+    "python-dotenv>=1.1.0",
     "uvicorn>=0.34.3",
 ]
 
@@ -23,7 +24,7 @@ dev = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "app.settings"
-python_files = ["test_*.py", "*_test.py", "testing/*.py", "tests.py"]
+python_files = ["test_*.py", "*_test.py", "tests/*.py", "tests.py"]
 
 [tool.pyright]
 venv = ".venv"
