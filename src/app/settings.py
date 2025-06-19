@@ -57,7 +57,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ninja_extra",
     "ninja_jwt",
-    "accounts.apps.AccountsConfig"
+    "accounts.apps.AccountsConfig",
+    "posts.apps.PostsConfig",
+    "comments.apps.CommentsConfig"
 ]
 
 MIDDLEWARE = [
