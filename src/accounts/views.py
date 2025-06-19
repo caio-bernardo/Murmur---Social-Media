@@ -5,10 +5,7 @@ from ninja.router import Router
 from ninja.errors import HttpError
 from ninja_jwt.tokens import RefreshToken
 
-from accounts.models import Profile
 from accounts.schemas import (
-    ProfilePrivate,
-    ProfilePublic,
     UserPatch,
     UserPrivate,
     UserPublic,

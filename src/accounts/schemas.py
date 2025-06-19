@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema
 from ninja.schema import Schema
-from ninja_jwt.schema import TokenObtainPairOutputSchema
 from pydantic import EmailStr, field_validator
 from pydantic.types import SecretStr
 

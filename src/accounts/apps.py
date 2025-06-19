@@ -6,5 +6,4 @@ class AccountsConfig(AppConfig):
     name = "accounts"
 
     def ready(self) -> None:
-        import accounts.models # import signals into context
         return super().ready()
