@@ -2,7 +2,6 @@ from django.test import TestCase
 from ninja.testing import TestClient
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
-import json
 
 from ninja_jwt.tokens import RefreshToken
 from posts.models import Post
@@ -111,27 +110,28 @@ class PostsTest(TestCase):
         user1_posts_count = Post.objects.filter(author=self.user1).count()
 
         response = self.tclient.get(
-            f"/?author_id={self.user1.pk}"
+            f"/?author={self.user1.pk}"
         )
         self.assertEqual(response.status_code, 200)
         # Check that we only get posts from user1
-        self.assertEqual(len(response.json()), user1_posts_count)
-        for post in response.json():
+        self.assertEqual(len(response.json()["items"]), user1_posts_count, response.json())
+        for post in response.json()['items']:
             self.assertEqual(post["author"], self.user1.pk)
 
     def test_get_post_by_time(self):
         # Filter post by last day
+        filter_time = datetime.now() - timedelta(hours=12)
         recent_posts_count = Post.objects.filter(
-            created_at__gte=datetime.now() - timedelta(hours=12)
+            created_at__gte=filter_time
         ).count()
 
         response = self.tclient.get(
-            "/?created_after=12h"
+            f"/?created_after={filter_time}"
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.json())
         # Should not include the post from yesterday
-        self.assertEqual(len(response.json()), recent_posts_count)
-        for post in response.json():
+        self.assertEqual(len(response.json()["items"]), recent_posts_count)
+        for post in response.json()["items"]:
             # Check that none of the returned posts has the content "Yesterday's post"
             self.assertNotEqual(post["content"], "Yesterday's post")
 

@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404
 from ninja.errors import HttpError
 from posts.models import Post
-from posts.schemas import PostCreate, PostPrivate, PostPublic
+from posts.schemas import PostCreate, PostFilter
 
 
-class PostService: # Should I can Postal service? :D
+class PostService: # Or should I can Postal Service? :D
 
     @staticmethod
     def create_post(request, payload: PostCreate) -> Post:
@@ -18,15 +18,18 @@ class PostService: # Should I can Postal service? :D
             raise HttpError(500, f"Failed to create post: {e}")
 
     @staticmethod
-    def get_one_post(request, id: int) -> PostPublic | PostPrivate:
+    def get_all(request, filters: PostFilter):
+        posts = Post.objects.all()
+        return filters.filter(posts)
+
+    @staticmethod
+    def get_one_post(request, id: int) -> Post:
         try:
             post = get_object_or_404(Post.objects, pk=id)
-            if request.auth == post.author:
-                return PostPrivate.model_validate(post)
-            return PostPublic.model_validate(post)
+            return post
         except HttpError as e:
-                raise e
-        except Exception as e:
+            raise e
+        except Exception:
             raise HttpError(500, "Failed to retrieve the post")
 
 
@@ -40,4 +43,4 @@ class PostService: # Should I can Postal service? :D
         except HttpError as e:
             raise e
         except Exception as e:
-            raise HttpError(500, "Failed to delete post")
+            raise HttpError(500, f"Failed to delete post: {e}")

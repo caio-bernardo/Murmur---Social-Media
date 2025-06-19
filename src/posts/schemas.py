@@ -1,6 +1,7 @@
-from ninja import Schema
-from ninja.orm.metaclass import ModelSchema
-from pydantic import Field, field_validator
+from datetime import datetime
+from typing import Optional
+from ninja import FilterSchema, Schema, ModelSchema, Field
+from pydantic import field_validator
 
 from posts.models import Post
 
@@ -28,3 +29,7 @@ class PostPrivate(ModelSchema):
     class Meta:
         model = Post
         fields = ["content", "author", "created_at"]
+
+class PostFilter(FilterSchema):
+    author: Optional[int] = None
+    created_after: Optional[datetime] = Field(None, q='created_at__gte') #type: ignore
