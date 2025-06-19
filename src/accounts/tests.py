@@ -60,7 +60,7 @@ class AccountsTest(TestCase):
             username="tester",
         )
         refresh = RefreshToken.for_user(user)
-        res = self.tclient.get("/me", headers={"Authorization": "Bearer " + str(refresh.access_token)})
+        res = self.tclient.get("/me", headers={"Authorization": "Bearer " + str(refresh.access_token)}) # type: ignore
         self.assertEqual(res.status_code, 200, res.json())
         self.assertIn("profile", res.data)
 
