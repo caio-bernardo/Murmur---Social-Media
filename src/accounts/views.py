@@ -1,4 +1,5 @@
-from ninja import PatchDict
+from ninja import File, PatchDict
+from ninja.files import UploadedFile
 from ninja.router import Router
 
 from accounts.schemas import (
@@ -35,15 +36,28 @@ def delete_user(request):
     """
     Delete a user.
     """
-    return AccountService.delete_user(request)
+    return 204, AccountService.delete_user(request)
 
+@router.post("/me/photo", auth=TokenBasedAuth(), response={205: None})
+def upload_user_photo(request, file: File[UploadedFile]):
+    """
+    Upload a photo for a user's profile.
+    """
+    return 205, AccountService.upload_user_photo(request, file)
+
+@router.delete("/me/photo", auth=TokenBasedAuth(), response={204: None})
+def delete_user_photo(request):
+    """
+    Delete a user's profile photo.
+    """
+    return 204, AccountService.delete_user_photo(request)
 
 @router.post("/register", response={201: UserRegisterOut})
 def create_user(request, payload: UserRegisterIn):
     """
     Register a new user.
     """
-    return AccountService.create_user(request, payload)
+    return 201, AccountService.create_user(request, payload)
 
 
 @router.get("/{username}", response=UserPublic)

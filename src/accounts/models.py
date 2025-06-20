@@ -4,10 +4,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 # Create your models here.
 
+def user_directory_path(instance, filename):
+    return f"profile_pics/{instance.user.username}/{filename}"
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     bio = models.TextField(max_length=100, blank=True, null=True)
-    # TODO: image
+    photo = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

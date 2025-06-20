@@ -27,7 +27,7 @@ class UserRegisterIn(Schema):
 class ProfilePublic(ModelSchema):
     class Meta:
         model = Profile
-        fields = ["bio", "created_at",]
+        fields = ["bio", "photo", "created_at",]
 
 class ProfilePrivate(ModelSchema):
     class Meta:

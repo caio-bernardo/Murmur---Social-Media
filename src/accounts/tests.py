@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from ninja.testing import TestClient
 from django.test import TestCase
 from ninja_jwt.tokens import RefreshToken
@@ -130,3 +131,32 @@ class AccountsTest(TestCase):
         # Confirm user has been removed from the database
         user_exists = User.objects.filter(username="deleter").exists()
         self.assertFalse(user_exists, "User was not successfully deleted")
+
+    def test_upload_user_photo(self):
+        from io import BytesIO
+        user = User.objects.create_user(username="photo_tester", password="12345678")
+        refresh = RefreshToken.for_user(user)
+
+        fake_image = BytesIO(b"fakejpegdata")
+        res = self.tclient.post(
+            "/me/photo",
+            headers={"Authorization": f"Bearer {refresh.access_token}"}, #type: ignore
+            FILES={"file": SimpleUploadedFile("test_image.jpg", fake_image.getvalue(), "image/jpeg")}
+        )
+        self.assertEqual(res.status_code, 205)
+
+        # Confirm photo has been uploaded
+        user = User.objects.get(username="photo_tester")
+        self.assertIsNotNone(user.profile.photo) #type: ignore
+
+        user.profile.photo.delete() # type: ignore
+
+    def test_delete_user_photo(self):
+        user = User.objects.create_user(username="photo_deleter", password="12345678")
+        refresh = RefreshToken.for_user(user)
+
+        res = self.tclient.delete(
+            "/me/photo",
+            headers={"Authorization": f"Bearer {refresh.access_token}"}, #type: ignore
+        )
+        self.assertEqual(res.status_code, 204)
