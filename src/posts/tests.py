@@ -1,4 +1,3 @@
-from typing import Any, TypeVar, cast
 from django.test import TestCase
 from ninja.testing import TestAsyncClient
 from django.contrib.auth.models import User
@@ -8,8 +7,6 @@ from ninja_jwt.tokens import RefreshToken
 from posts.models import Post
 from posts.views import router
 
-# Define a type variable for test responses
-T = TypeVar('T')
 
 class PostsTest(TestCase):
 
