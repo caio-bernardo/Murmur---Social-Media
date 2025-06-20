@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from ninja import File, UploadedFile
 from ninja.errors import HttpError
 from ninja_jwt.tokens import RefreshToken
 
@@ -28,13 +29,13 @@ class AccountService:
         return user
 
     @staticmethod
-    def delete_user(request):
+    def delete_user(request) -> None:
         """
         Delete a user.
         """
         user = request.auth
         user.delete()
-        return 204, None
+        return None
 
     @staticmethod
     def create_user(request, payload):
@@ -58,7 +59,7 @@ class AccountService:
                     "refresh": str(refresh),
                     "access": str(refresh.access_token) #type: ignore
             }
-            return 201, UserRegisterOut.model_validate(data)
+            return UserRegisterOut.model_validate(data)
         except Exception as e:
             raise HttpError(500, f"Failed to create user: {e}")
 
@@ -72,3 +73,22 @@ class AccountService:
             return res
         except Exception as e:
             raise HttpError(500, f"Failed to retrieve user: {e}")
+
+    @staticmethod
+    def upload_user_photo(request, photo: File[UploadedFile]) -> None:
+        """
+        Upload a photo for a user's profile.
+        """
+        user = request.auth
+        user.profile.photo = photo
+        user.profile.save()
+        return None
+
+    @staticmethod
+    def delete_user_photo(request) -> None:
+        """
+        Delete a user's profile photo.
+        """
+        user = request.auth
+        user.profile.photo.delete()
+        return None
