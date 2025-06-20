@@ -1,0 +1,9 @@
+.git
+.venv
+
+**/__pycache__
+**/*test*.py
+**/tests/
+
+media
+static

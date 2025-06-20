@@ -1,0 +1,73 @@
+services:
+  database:
+    image: postgres:alpine
+    container_name: murmur-db
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    ports:
+      - 5432:5432
+    env_file:
+      - path: .env
+        required: true
+    restart: unless-stopped
+
+  migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      # target: builder
+    user: root
+    command: >
+      sh -c "python manage.py migrate --no-input &&
+          python manage.py collectstatic --no-input
+      "
+    volumes:
+      - static_data:/app/static
+    env_file:
+      - path: .env
+        required: true
+    depends_on:
+      - database
+
+  backend:
+    image: murmur-backend
+    container_name: murmur-backend
+    pull_policy: never
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    volumes:
+      - media_data:/app/media
+    env_file:
+      - path: .env
+        required: true
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    ports:
+      - 8000:8000
+
+  web:
+    image: nginx:stable-alpine
+    container_name: murmur-web
+    volumes:
+      - static_data:/app/static:ro
+      - media_data:/app/media
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
