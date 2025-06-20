@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import aget_object_or_404
 from ninja import File, UploadedFile
 from ninja.errors import HttpError
 from ninja_jwt.tokens import RefreshToken
@@ -9,44 +9,44 @@ from accounts.schemas import UserRegisterOut
 
 class AccountService:
     @staticmethod
-    def get_user_profile(request):
+    async def get_user_profile(request):
         """
         Get private version of a user's profile.
         """
-        return request.auth
+        return await aget_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
 
     @staticmethod
-    def update_user_profile(request, payload):
+    async def update_user_profile(request, payload):
         """
         Update user's profile and internal attributes.
         """
-        user = get_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
+        user = await aget_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
         for field, value in payload.items():
             if hasattr(user, field) and value is not None:
                 setattr(user, field, value)
-        user.save()
-        user.profile.save() #type: ignore
+        await user.asave()
+        await user.profile.asave() #type: ignore
         return user
 
     @staticmethod
-    def delete_user(request) -> None:
+    async def delete_user(request) -> None:
         """
         Delete a user.
         """
         user = request.auth
-        user.delete()
+        await user.adelete()
         return None
 
     @staticmethod
-    def create_user(request, payload):
+    async def create_user(request, payload):
         """
         Register a new user.
         """
-        if User.objects.filter(username__exact=payload.username).exists():
+        if await User.objects.filter(username__exact=payload.username).aexists():
             raise HttpError(409, "An account already exists under this username")
 
         try:
-            new_user = User.objects.create_user(
+            new_user = await User.objects.acreate_user(
                 username=payload.username,
                 email=payload.email,
                 password=payload.password.get_secret_value(),
@@ -64,31 +64,31 @@ class AccountService:
             raise HttpError(500, f"Failed to create user: {e}")
 
     @staticmethod
-    def get_public_user(request, username):
+    async def get_public_user(request, username):
         """
         See public version of a user's profile.
         """
         try:
-            res = get_object_or_404(User.objects.select_related("profile"), username=username)
+            res = await aget_object_or_404(User.objects.select_related("profile"), username=username)
             return res
         except Exception as e:
             raise HttpError(500, f"Failed to retrieve user: {e}")
 
     @staticmethod
-    def upload_user_photo(request, photo: File[UploadedFile]) -> None:
+    async def upload_user_photo(request, photo: File[UploadedFile]) -> None:
         """
         Upload a photo for a user's profile.
         """
-        user = request.auth
-        user.profile.photo = photo
-        user.profile.save()
+        user = await aget_object_or_404(User.objects.select_related("profile"), pk=request.auth.pk)
+        user.profile.photo = photo # type: ignore
+        await user.profile.asave() # type: ignore
         return None
 
     @staticmethod
-    def delete_user_photo(request) -> None:
+    async def delete_user_photo(request) -> None:
         """
         Delete a user's profile photo.
         """
-        user = request.auth
-        user.profile.photo.delete()
+        user = await aget_object_or_404(User.objects.select_related("profile"), pk=request.auth.pk)
+        user.profile.photo.delete() # type: ignore
         return None
