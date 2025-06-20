@@ -67,7 +67,7 @@ class ReactionService:
         post = await aget_object_or_404(Post.objects, pk=post_id)
 
         # Try to get and delete existing reaction
-        reaction = await aget_object_or_404(Reaction.objects, user=request.auth, post=post)
+        reaction = await aget_object_or_404(Reaction.objects.select_related("post"), user=request.auth, post=post)
         await reaction.adelete()
 
     @staticmethod

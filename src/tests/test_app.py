@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ninja.testing import TestClient
+from ninja.testing import TestAsyncClient
 from django.contrib.auth.models import User
 
 from app.api import app
@@ -15,7 +15,7 @@ class IntegratedAppTest(TestCase):
 
     def setUp(self):
         # Create a test client for the entire API
-        self.tclient = TestClient(app)
+        self.tclient = TestAsyncClient(app)
 
         # Create a second user for interaction tests
         self.other_user = User.objects.create_user(
@@ -32,7 +32,7 @@ class IntegratedAppTest(TestCase):
             author=self.other_user
         )
 
-    def test_user_happy_path(self):
+    async def test_user_happy_path(self):
         """
         Test the complete user journey: registration, profile viewing,
         posting, commenting and reacting to posts.
@@ -47,7 +47,7 @@ class IntegratedAppTest(TestCase):
             "last_name": "User"
         }
 
-        register_response = self.tclient.post("/accounts/register", json=register_payload)
+        register_response = await self.tclient.post("/accounts/register", json=register_payload) # type: ignore
         self.assertEqual(register_response.status_code, 201)
 
         # Extract tokens for authentication
@@ -55,13 +55,13 @@ class IntegratedAppTest(TestCase):
         auth_header = {"Authorization": f"Bearer {access_token}"}
 
         # Step 2: View user profile
-        profile_response = self.tclient.get("/accounts/me", headers=auth_header)
+        profile_response = await self.tclient.get("/accounts/me", headers=auth_header) # type: ignore
         self.assertEqual(profile_response.status_code, 200)
         self.assertEqual(profile_response.json()["username"], "happyuser")
 
         # Step 3: Create a new post
         post_payload = {"content": "Hello world! This is my first post."}
-        post_response = self.tclient.post("/posts/", json=post_payload, headers=auth_header)
+        post_response = await self.tclient.post("/posts/", json=post_payload, headers=auth_header) # type: ignore
         self.assertEqual(post_response.status_code, 201)
 
         _ = post_response.json().get("id") or post_response.json().get("pk")
@@ -71,11 +71,11 @@ class IntegratedAppTest(TestCase):
             "content": "Great post! I really enjoyed it.",
             "post_id": self.other_post.pk
         }
-        comment_response = self.tclient.post(
+        comment_response = await self.tclient.post(
             "/comments/",
             json=comment_payload,
             headers=auth_header
-        )
+        ) # type: ignore
         self.assertEqual(comment_response.status_code, 201)
 
         # Step 5: Like the other user's post
@@ -83,25 +83,25 @@ class IntegratedAppTest(TestCase):
             "post_id": self.other_post.pk,
             "reaction_type": "like"
         }
-        reaction_response = self.tclient.post(
+        reaction_response = await self.tclient.post(
             "/reactions/",
             json=reaction_payload,
             headers=auth_header
-        )
+        ) # type: ignore
         self.assertEqual(reaction_response.status_code, 201)
 
         # Step 6: Verify the like count increased
-        count_response = self.tclient.get(f"/reactions/posts/{self.other_post.pk}/count")
+        count_response = await self.tclient.get(f"/reactions/posts/{self.other_post.pk}/count") # type: ignore
         self.assertEqual(count_response.status_code, 200)
         self.assertEqual(count_response.json()["likes"], 1)
 
         # Step 7: Check feed includes both posts
-        feed_response = self.tclient.get("/posts/?limit=10", headers=auth_header)
+        feed_response = await self.tclient.get("/posts/?limit=10", headers=auth_header) # type: ignore
         self.assertEqual(feed_response.status_code, 200)
         self.assertGreaterEqual(len(feed_response.json()["items"]), 2)
 
         # Step 8: Retrieve comments for the other user's post
-        comments_response = self.tclient.get(f"/comments/?post_id={self.other_post.pk}")
+        comments_response = await self.tclient.get(f"/comments/?post_id={self.other_post.pk}") # type: ignore
         self.assertEqual(comments_response.status_code, 200)
         self.assertEqual(len(comments_response.json()["items"]), 1)
         self.assertEqual(comments_response.json()["items"][0]["content"], "Great post! I really enjoyed it.")
