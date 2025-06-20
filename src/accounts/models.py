@@ -4,8 +4,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 # Create your models here.
 
+
 def user_directory_path(instance, filename):
     return f"profile_pics/{instance.user.username}/{filename}"
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -17,11 +19,13 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s profile"
 
+
 # Signals
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

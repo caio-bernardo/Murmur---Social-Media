@@ -1,5 +1,6 @@
 # from ninja_jwt.routers.blacklist import blacklist_router
-from ninja_jwt.routers.obtain import obtain_pair_router #, sliding_router
+from ninja_jwt.routers.obtain import obtain_pair_router  # , sliding_router
+
 # from ninja_jwt.routers.verify import verify_router
 from ninja import NinjaAPI
 

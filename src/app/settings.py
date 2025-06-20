@@ -28,18 +28,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 NINJA_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.environ["ACCESS_TOKEN_LIFETIME"])),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.environ["ACCESS_TOKEN_LIFETIME"])
+    ),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.environ["REFRESH_TOKEN_LIFETIME"])),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,
     "VERIFYING_KEY": None,
-
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
     "USER_AUTHENTICATION_RULE": "ninja_jwt.authentication.default_user_authentication_rule",
-
     "AUTH_TOKEN_CLASSES": ("ninja_jwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
 }
@@ -47,7 +47,7 @@ NINJA_JWT = {
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split(',')
+ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split(",")
 
 
 # Application definition
@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "posts.apps.PostsConfig",
     "reactions.apps.ReactionsConfig",
-    "comments.apps.CommentsConfig"
+    "comments.apps.CommentsConfig",
 ]
 
 MIDDLEWARE = [

@@ -8,6 +8,7 @@ from posts.services import PostService
 
 router = Router()
 
+
 @router.post("/", auth=AsyncTokenBasedAuth(), response={201: PostPrivate})
 async def create_post(request, payload: PostCreate):
     """
@@ -15,13 +16,15 @@ async def create_post(request, payload: PostCreate):
     """
     return 201, await PostService.create_post(request, payload)
 
+
 @router.get("/", response=list[PostPublic])
 @paginate
-async def get_list_of_posts(request, filters: PostFilter = Query(...)): # type: ignore
+async def get_list_of_posts(request, filters: PostFilter = Query(...)):  # type: ignore
     """
     Get a list of posts with optional filtering.
     """
     return await PostService.get_all(request, filters)
+
 
 @router.get("/{int:id}", auth=AsyncTokenBasedAuth(), response=PostPublic)
 async def get_a_single_post(request, id: int):
@@ -29,6 +32,7 @@ async def get_a_single_post(request, id: int):
     Get a single post by its ID.
     """
     return await PostService.get_one_post(request, id)
+
 
 @router.delete("/{int:id}", auth=AsyncTokenBasedAuth(), response={205: None})
 async def delete_post(request, id: int):

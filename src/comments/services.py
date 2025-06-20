@@ -4,6 +4,7 @@ from comments.models import Comment
 from posts.models import Post
 from comments.schemas import CommentCreate, CommentFilter
 
+
 class CommentService:
     """Service class for managing comment operations."""
 
@@ -30,11 +31,7 @@ class CommentService:
                 raise HttpError(422, "Content exceeds 280 characters")
             # Ensure the post exists
             post = await aget_object_or_404(Post.objects, pk=payload.post_id)
-            comment = Comment(
-                content=payload.content,
-                post=post,
-                author=request.auth
-            )
+            comment = Comment(content=payload.content, post=post, author=request.auth)
             await comment.asave()
             return comment
         except HttpError as e:
@@ -73,7 +70,9 @@ class CommentService:
             HttpError: If comment doesn't exist or retrieval fails
         """
         try:
-            comment = await aget_object_or_404(Comment.objects.select_related('author'), pk=id)
+            comment = await aget_object_or_404(
+                Comment.objects.select_related("author"), pk=id
+            )
             return comment
         except HttpError as e:
             raise e
@@ -93,7 +92,9 @@ class CommentService:
             HttpError: If comment doesn't exist, user isn't the author,
                       or deletion fails
         """
-        comment = await aget_object_or_404(Comment.objects.select_related('author'), pk=id)
+        comment = await aget_object_or_404(
+            Comment.objects.select_related("author"), pk=id
+        )
         if request.auth != comment.author:
             raise HttpError(403, "YOU cannot delete comments from another person")
         await comment.adelete()

@@ -9,16 +9,13 @@ from posts.views import router
 
 
 class PostsTest(TestCase):
-
     def setUp(self) -> None:
         # Create test users
         self.user1 = User.objects.create_user(
-            username='testuser1',
-            password='password123'
+            username="testuser1", password="password123"
         )
         self.user2 = User.objects.create_user(
-            username='testuser2',
-            password='password123'
+            username="testuser2", password="password123"
         )
 
         # Create some test posts
@@ -44,14 +41,13 @@ class PostsTest(TestCase):
         refresh = RefreshToken.for_user(self.user2)
         self.token_user2 = str(refresh.access_token)  # type: ignore
 
-
     async def test_create_new_post(self):
         # should have a logged user
         response = await self.tclient.post(
             "/",
             json={"content": "This is a new test post"},
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) #type: ignore
+            headers={"Authorization": f"Bearer {self.token_user1}"},
+        )  # type: ignore
         self.assertEqual(response.status_code, 201)
         json_data = response.json()
         self.assertEqual(json_data["content"], "This is a new test post")
@@ -60,9 +56,8 @@ class PostsTest(TestCase):
     async def test_should_fail_create_post_without_auth(self):
         # Try to create without user authenticated
         response = await self.tclient.post(
-            "/",
-            json={"content": "This post should not be created"}
-        ) #type: ignore
+            "/", json={"content": "This post should not be created"}
+        )  # type: ignore
         self.assertEqual(response.status_code, 401)
 
     async def test_should_fail_create_empty_post(self):
@@ -70,8 +65,8 @@ class PostsTest(TestCase):
         response = await self.tclient.post(
             "/",
             json={"content": ""},
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) #type: ignore
+            headers={"Authorization": f"Bearer {self.token_user1}"},
+        )  # type: ignore
         self.assertEqual(response.status_code, 422)  # Validation error
 
     async def test_should_fail_create_oversized_post(self):
@@ -80,8 +75,8 @@ class PostsTest(TestCase):
         response = await self.tclient.post(
             "/",
             json={"content": oversized_content},
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) #type: ignore
+            headers={"Authorization": f"Bearer {self.token_user1}"},
+        )  # type: ignore
         self.assertEqual(response.status_code, 422)  # Validation error
 
     async def test_get_a_single_post_of_otheruser(self):
@@ -89,9 +84,8 @@ class PostsTest(TestCase):
         post = await Post.objects.filter(author=self.user2).afirst()
         assert post
         response = await self.tclient.get(
-            f"/{post.pk}",
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) #type: ignore
+            f"/{post.pk}", headers={"Authorization": f"Bearer {self.token_user1}"}
+        )  # type: ignore
         self.assertEqual(response.status_code, 200)
         # Should return a PostPublic schema (basic info)
         json_data = response.json()
@@ -103,9 +97,8 @@ class PostsTest(TestCase):
         post = await Post.objects.filter(author=self.user1).afirst()
         assert post
         response = await self.tclient.get(
-            f"/{post.pk}",
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) #type: ignore
+            f"/{post.pk}", headers={"Authorization": f"Bearer {self.token_user1}"}
+        )  # type: ignore
         self.assertEqual(response.status_code, 200)
         # Should return a PostPrivate schema (more detailed info)
         json_data = response.json()
@@ -116,14 +109,12 @@ class PostsTest(TestCase):
         # filter post by different users
         user1_posts_count = await Post.objects.filter(author=self.user1).acount()
 
-        response = await self.tclient.get(
-            f"/?author={self.user1.pk}"
-        ) #type: ignore
+        response = await self.tclient.get(f"/?author={self.user1.pk}")  # type: ignore
         self.assertEqual(response.status_code, 200)
         # Check that we only get posts from user1
         json_data = response.json()
         self.assertEqual(len(json_data["items"]), user1_posts_count)
-        for post in json_data['items']:
+        for post in json_data["items"]:
             self.assertEqual(post["author"], self.user1.pk)
 
     async def test_get_post_by_time(self):
@@ -133,9 +124,7 @@ class PostsTest(TestCase):
             created_at__gte=filter_time
         ).acount()
 
-        response = await self.tclient.get(
-            f"/?created_after={filter_time.isoformat()}"
-        ) #type: ignore
+        response = await self.tclient.get(f"/?created_after={filter_time.isoformat()}")  # type: ignore
         self.assertEqual(response.status_code, 200)
         # Should not include the post from yesterday
         json_data = response.json()
@@ -146,18 +135,14 @@ class PostsTest(TestCase):
 
     async def test_get_post_with_pagination(self):
         # Query with pagination
-        response = await self.tclient.get(
-            "/?limit=2&offset=0"
-        ) #type: ignore
+        response = await self.tclient.get("/?limit=2&offset=0")  # type: ignore
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         # Should return exactly 2 posts
         self.assertEqual(len(json_data["items"]), 2)
 
         # Get the next page
-        response = await self.tclient.get(
-            "/?limit=2&offset=2"
-        ) #type: ignore
+        response = await self.tclient.get("/?limit=2&offset=2")  # type: ignore
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         # Should have less than or equal to 2 posts
@@ -169,7 +154,7 @@ class PostsTest(TestCase):
 
         # Get all posts through pagination
         for offset in range(0, total_posts, 2):
-            response = await self.tclient.get(f"/?limit=2&offset={offset}") #type: ignore
+            response = await self.tclient.get(f"/?limit=2&offset={offset}")  # type: ignore
             json_data = response.json()
             all_posts.extend(json_data["items"])
 
@@ -183,9 +168,8 @@ class PostsTest(TestCase):
         post_id = post.pk
 
         response = await self.tclient.delete(
-            f"/{post_id}",
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) # type: ignore
+            f"/{post_id}", headers={"Authorization": f"Bearer {self.token_user1}"}
+        )  # type: ignore
         self.assertEqual(response.status_code, 205)
 
         # Verify the post is really deleted
@@ -199,9 +183,8 @@ class PostsTest(TestCase):
         post_id = post.pk
 
         response = await self.tclient.delete(
-            f"/{post_id}",
-            headers={"Authorization": f"Bearer {self.token_user1}"}
-        ) # type: ignore
+            f"/{post_id}", headers={"Authorization": f"Bearer {self.token_user1}"}
+        )  # type: ignore
         self.assertEqual(response.status_code, 403)  # Forbidden
 
         # Verify the post still exists

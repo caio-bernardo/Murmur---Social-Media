@@ -5,7 +5,6 @@ from posts.schemas import PostCreate, PostFilter
 
 
 class PostService:
-
     @staticmethod
     async def create_post(request, payload: PostCreate) -> Post:
         try:
@@ -33,7 +32,6 @@ class PostService:
             raise e
         except Exception:
             raise HttpError(500, "Failed to retrieve the post")
-
 
     @staticmethod
     async def delete_post(request, id: int) -> None:

@@ -7,6 +7,7 @@ from comments.services import CommentService
 
 router = Router()
 
+
 @router.post("/", auth=AsyncTokenBasedAuth(), response={201: CommentPublic})
 async def create_comment(request, payload: CommentCreate):
     """
@@ -14,6 +15,7 @@ async def create_comment(request, payload: CommentCreate):
     Requires authentication. Returns the newly created comment.
     """
     return 201, await CommentService.create_comment(request, payload)
+
 
 @router.get("/", response=list[CommentPublic])
 @paginate
@@ -24,6 +26,7 @@ async def get_list_of_comments(request, filters: CommentFilter = Query(...)):  #
     """
     return await CommentService.get_all(request, filters)
 
+
 @router.get("/{int:id}", response=CommentPublic)
 async def get_a_single_comment(request, id: int):
     """
@@ -31,6 +34,7 @@ async def get_a_single_comment(request, id: int):
     Returns 404 if the comment doesn't exist.
     """
     return await CommentService.get_one_comment(request, id)
+
 
 @router.delete("/{int:id}", auth=AsyncTokenBasedAuth(), response={205: None})
 async def delete_comment(request, id: int):

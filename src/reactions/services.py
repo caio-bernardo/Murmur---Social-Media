@@ -4,6 +4,7 @@ from posts.models import Post
 from reactions.models import Reaction, ReactionType
 from reactions.schemas import ReactionCreate, ReactionFilter, ReactionCount
 
+
 class ReactionService:
     """Service class for managing reaction operations."""
 
@@ -31,7 +32,9 @@ class ReactionService:
             post = await aget_object_or_404(Post.objects, pk=payload.post_id)
 
             # Try to get existing reaction
-            reaction = await Reaction.objects.filter(user=request.auth, post=post).afirst()
+            reaction = await Reaction.objects.filter(
+                user=request.auth, post=post
+            ).afirst()
             if reaction:
                 # Update existing reaction
                 reaction.reaction_type = payload.reaction_type
@@ -39,9 +42,7 @@ class ReactionService:
             else:
                 # Create new reaction
                 reaction = Reaction(
-                    user=request.auth,
-                    post=post,
-                    reaction_type=payload.reaction_type
+                    user=request.auth, post=post, reaction_type=payload.reaction_type
                 )
                 await reaction.asave()
 
@@ -67,7 +68,9 @@ class ReactionService:
         post = await aget_object_or_404(Post.objects, pk=post_id)
 
         # Try to get and delete existing reaction
-        reaction = await aget_object_or_404(Reaction.objects.select_related("post"), user=request.auth, post=post)
+        reaction = await aget_object_or_404(
+            Reaction.objects.select_related("post"), user=request.auth, post=post
+        )
         await reaction.adelete()
 
     @staticmethod
@@ -104,14 +107,14 @@ class ReactionService:
             # Check if post exists
             post = await aget_object_or_404(Post.objects, pk=post_id)
 
-            likes = await Reaction.objects.filter(post=post, reaction_type=ReactionType.LIKE).acount()
-            dislikes = await Reaction.objects.filter(post=post, reaction_type=ReactionType.DISLIKE).acount()
+            likes = await Reaction.objects.filter(
+                post=post, reaction_type=ReactionType.LIKE
+            ).acount()
+            dislikes = await Reaction.objects.filter(
+                post=post, reaction_type=ReactionType.DISLIKE
+            ).acount()
 
-            return ReactionCount(
-                post_id=post.pk,
-                likes=likes,
-                dislikes=dislikes
-            )
+            return ReactionCount(post_id=post.pk, likes=likes, dislikes=dislikes)
         except Exception as e:
             raise HttpError(500, f"Failed to get reaction counts: {e}")
 
@@ -135,7 +138,9 @@ class ReactionService:
             post = await aget_object_or_404(Post.objects, pk=post_id)
 
             # Try to get the reaction
-            reaction = await aget_object_or_404(Reaction.objects, user=request.auth, post=post)
+            reaction = await aget_object_or_404(
+                Reaction.objects, user=request.auth, post=post
+            )
             return reaction
         except Exception:
             raise HttpError(404, "Reaction not found")

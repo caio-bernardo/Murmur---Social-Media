@@ -13,19 +13,23 @@ class AccountService:
         """
         Get private version of a user's profile.
         """
-        return await aget_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
+        return await aget_object_or_404(
+            User.objects.select_related("profile"), username=request.auth.username
+        )
 
     @staticmethod
     async def update_user_profile(request, payload):
         """
         Update user's profile and internal attributes.
         """
-        user = await aget_object_or_404(User.objects.select_related("profile"), username=request.auth.username)
+        user = await aget_object_or_404(
+            User.objects.select_related("profile"), username=request.auth.username
+        )
         for field, value in payload.items():
             if hasattr(user, field) and value is not None:
                 setattr(user, field, value)
         await user.asave()
-        await user.profile.asave() #type: ignore
+        await user.profile.asave()  # type: ignore
         return user
 
     @staticmethod
@@ -51,13 +55,13 @@ class AccountService:
                 email=payload.email,
                 password=payload.password.get_secret_value(),
                 first_name=payload.first_name,
-                last_name=payload.last_name
+                last_name=payload.last_name,
             )
             refresh = RefreshToken.for_user(new_user)
             data = {
-                    "user": new_user,
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token) #type: ignore
+                "user": new_user,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),  # type: ignore
             }
             return UserRegisterOut.model_validate(data)
         except Exception as e:
@@ -69,7 +73,9 @@ class AccountService:
         See public version of a user's profile.
         """
         try:
-            res = await aget_object_or_404(User.objects.select_related("profile"), username=username)
+            res = await aget_object_or_404(
+                User.objects.select_related("profile"), username=username
+            )
             return res
         except Exception as e:
             raise HttpError(500, f"Failed to retrieve user: {e}")
@@ -79,9 +85,11 @@ class AccountService:
         """
         Upload a photo for a user's profile.
         """
-        user = await aget_object_or_404(User.objects.select_related("profile"), pk=request.auth.pk)
-        user.profile.photo = photo # type: ignore
-        await user.profile.asave() # type: ignore
+        user = await aget_object_or_404(
+            User.objects.select_related("profile"), pk=request.auth.pk
+        )
+        user.profile.photo = photo  # type: ignore
+        await user.profile.asave()  # type: ignore
         return None
 
     @staticmethod
@@ -89,6 +97,8 @@ class AccountService:
         """
         Delete a user's profile photo.
         """
-        user = await aget_object_or_404(User.objects.select_related("profile"), pk=request.auth.pk)
-        user.profile.photo.delete() # type: ignore
+        user = await aget_object_or_404(
+            User.objects.select_related("profile"), pk=request.auth.pk
+        )
+        user.profile.photo.delete()  # type: ignore
         return None

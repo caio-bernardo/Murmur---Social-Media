@@ -24,12 +24,14 @@ class PostPublic(ModelSchema):
         model = Post
         fields = ["content", "author", "created_at"]
 
+
 # Only the author can see this info
 class PostPrivate(ModelSchema):
     class Meta:
         model = Post
         fields = ["content", "author", "created_at"]
 
+
 class PostFilter(FilterSchema):
     author: Optional[int] = None
-    created_after: Optional[datetime] = Field(None, q='created_at__gte') #type: ignore
+    created_after: Optional[datetime] = Field(None, q="created_at__gte")  # type: ignore

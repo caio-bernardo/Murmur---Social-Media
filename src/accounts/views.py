@@ -1,4 +1,3 @@
-
 from ninja import File, PatchDict
 from ninja.files import UploadedFile
 from ninja.router import Router
@@ -39,6 +38,7 @@ async def delete_user(request):
     """
     return 204, await AccountService.delete_user(request)
 
+
 @router.post("/me/photo", auth=AsyncTokenBasedAuth(), response={205: None})
 async def upload_user_photo(request, file: File[UploadedFile]):
     """
@@ -46,12 +46,14 @@ async def upload_user_photo(request, file: File[UploadedFile]):
     """
     return 205, await AccountService.upload_user_photo(request, file)
 
+
 @router.delete("/me/photo", auth=AsyncTokenBasedAuth(), response={204: None})
 async def delete_user_photo(request):
     """
     Delete a user's profile photo.
     """
     return 204, await AccountService.delete_user_photo(request)
+
 
 @router.post("/register", response={201: UserRegisterOut})
 async def create_user(request, payload: UserRegisterIn):
