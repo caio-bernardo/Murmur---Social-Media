@@ -10,7 +10,6 @@ This is **Murmur**, a _fake_ social media application, build to learn and have s
 - [x] Like and Deslike posts and make comments about them
 
 
-
 ## How to access
 
 
