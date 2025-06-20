@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import aget_object_or_404
 from ninja.errors import HttpError
 from posts.models import Post
 from reactions.models import Reaction, ReactionType
@@ -8,7 +8,7 @@ class ReactionService:
     """Service class for managing reaction operations."""
 
     @staticmethod
-    def create_reaction(request, payload: ReactionCreate) -> Reaction:
+    async def create_reaction(request, payload: ReactionCreate) -> Reaction:
         """
         Create or update a reaction for a post.
         If the user has already reacted to the post, the reaction is updated.
@@ -28,21 +28,22 @@ class ReactionService:
                 raise HttpError(422, f"Invalid reaction type: {payload.reaction_type}")
 
             # Check if post exists
-            post = get_object_or_404(Post.objects, pk=payload.post_id)
+            post = await aget_object_or_404(Post.objects, pk=payload.post_id)
 
             # Try to get existing reaction
-            try:
-                reaction = Reaction.objects.get(user=request.auth, post=post)
+            reaction = await Reaction.objects.filter(user=request.auth, post=post).afirst()
+            if reaction:
                 # Update existing reaction
                 reaction.reaction_type = payload.reaction_type
-                reaction.save()
-            except Reaction.DoesNotExist:
+                await reaction.asave()
+            else:
                 # Create new reaction
-                reaction = Reaction.objects.create(
+                reaction = Reaction(
                     user=request.auth,
                     post=post,
                     reaction_type=payload.reaction_type
                 )
+                await reaction.asave()
 
             return reaction
         except HttpError as e:
@@ -51,7 +52,7 @@ class ReactionService:
             raise HttpError(500, f"Failed to create reaction: {e}")
 
     @staticmethod
-    def delete_reaction(request, post_id: int) -> None:
+    async def delete_reaction(request, post_id: int) -> None:
         """
         Delete a user's reaction to a post.
 
@@ -62,20 +63,15 @@ class ReactionService:
         Raises:
             HttpError: If the reaction doesn't exist or deletion fails
         """
-        try:
-            # Check if post exists
-            post = get_object_or_404(Post.objects, pk=post_id)
+        # Check if post exists
+        post = await aget_object_or_404(Post.objects, pk=post_id)
 
-            # Try to get and delete existing reaction
-            reaction = get_object_or_404(Reaction.objects, user=request.auth, post=post)
-            reaction.delete()
-        except HttpError as e:
-            raise e
-        except Exception as e:
-            raise HttpError(500, f"Failed to delete reaction: {e}")
+        # Try to get and delete existing reaction
+        reaction = await aget_object_or_404(Reaction.objects, user=request.auth, post=post)
+        await reaction.adelete()
 
     @staticmethod
-    def get_all(request, filters: ReactionFilter):
+    async def get_all(request, filters: ReactionFilter):
         """
         Get all reactions, with optional filtering.
 
@@ -90,7 +86,7 @@ class ReactionService:
         return filters.filter(reactions)
 
     @staticmethod
-    def get_reaction_counts(request, post_id: int) -> ReactionCount:
+    async def get_reaction_counts(request, post_id: int) -> ReactionCount:
         """
         Get the count of likes and dislikes for a post.
 
@@ -106,23 +102,21 @@ class ReactionService:
         """
         try:
             # Check if post exists
-            post = get_object_or_404(Post.objects, pk=post_id)
+            post = await aget_object_or_404(Post.objects, pk=post_id)
 
-            likes = Reaction.objects.filter(post=post, reaction_type=ReactionType.LIKE).count()
-            dislikes = Reaction.objects.filter(post=post, reaction_type=ReactionType.DISLIKE).count()
+            likes = await Reaction.objects.filter(post=post, reaction_type=ReactionType.LIKE).acount()
+            dislikes = await Reaction.objects.filter(post=post, reaction_type=ReactionType.DISLIKE).acount()
 
             return ReactionCount(
                 post_id=post.pk,
                 likes=likes,
                 dislikes=dislikes
             )
-        except HttpError as e:
-            raise e
         except Exception as e:
             raise HttpError(500, f"Failed to get reaction counts: {e}")
 
     @staticmethod
-    def get_user_reaction(request, post_id: int) -> Reaction:
+    async def get_user_reaction(request, post_id: int) -> Reaction:
         """
         Get a user's reaction to a specific post.
 
@@ -136,9 +130,12 @@ class ReactionService:
         Raises:
             HttpError: If the post or reaction doesn't exist
         """
-        # Check if post exists
-        post = get_object_or_404(Post.objects, pk=post_id)
+        try:
+            # Check if post exists
+            post = await aget_object_or_404(Post.objects, pk=post_id)
 
-        # Try to get the reaction
-        reaction = get_object_or_404(Reaction.objects, user=request.auth, post=post)
-        return reaction
+            # Try to get the reaction
+            reaction = await aget_object_or_404(Reaction.objects, user=request.auth, post=post)
+            return reaction
+        except Exception:
+            raise HttpError(404, "Reaction not found")
