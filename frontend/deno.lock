@@ -3,6 +3,7 @@
   "specifiers": {
     "npm:@eslint/compat@^1.2.5": "1.3.0_eslint@9.29.0",
     "npm:@eslint/js@^9.18.0": "9.29.0",
+    "npm:@lucide/svelte@0.519": "0.519.0_svelte@5.34.7__acorn@8.15.0",
     "npm:@skeletonlabs/skeleton-svelte@^1.2.3": "1.2.3_svelte@5.34.7__acorn@8.15.0",
     "npm:@skeletonlabs/skeleton@^3.1.3": "3.1.3_tailwindcss@4.1.10",
     "npm:@sveltejs/adapter-auto@6": "6.0.1_@sveltejs+kit@2.21.5__@sveltejs+vite-plugin-svelte@5.1.0___svelte@5.34.7____acorn@8.15.0___vite@6.3.5____picomatch@4.0.2__svelte@5.34.7___acorn@8.15.0__vite@6.3.5___picomatch@4.0.2__acorn@8.15.0_@sveltejs+vite-plugin-svelte@5.1.0__svelte@5.34.7___acorn@8.15.0__vite@6.3.5___picomatch@4.0.2_svelte@5.34.7__acorn@8.15.0_vite@6.3.5__picomatch@4.0.2",
@@ -257,6 +258,12 @@
       "dependencies": [
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
+      ]
+    },
+    "@lucide/svelte@0.519.0_svelte@5.34.7__acorn@8.15.0": {
+      "integrity": "sha512-NMe66kJrIGyc5jpI3JhpGCysN9/eBn/5264bmDY7SjVFo7TbHQBOPBcycFfwuZIKhv9io7qSVJJtjG18nsBB7g==",
+      "dependencies": [
+        "svelte"
       ]
     },
     "@napi-rs/wasm-runtime@0.2.11": {
@@ -1871,6 +1878,7 @@
       "dependencies": [
         "npm:@eslint/compat@^1.2.5",
         "npm:@eslint/js@^9.18.0",
+        "npm:@lucide/svelte@0.519",
         "npm:@skeletonlabs/skeleton-svelte@^1.2.3",
         "npm:@skeletonlabs/skeleton@^3.1.3",
         "npm:@sveltejs/adapter-auto@6",

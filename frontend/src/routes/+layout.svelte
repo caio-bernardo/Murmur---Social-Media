@@ -2,6 +2,10 @@
 	import '../app.css';
 
 	let { children } = $props();
+
+	let theme = $state("mona")
 </script>
 
-{@render children()}
+<div data-theme={theme} class="h-screen grid">
+    {@render children()}
+</div>
