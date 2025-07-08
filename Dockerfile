@@ -49,4 +49,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 USER appuser
 
 EXPOSE 8000
-CMD ["uvicorn", "murmur.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "src"]
+CMD ["uvicorn", "murmur.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
