@@ -1,0 +1,12 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <c-head title="{{title}}">
+        <c-slot name="head">
+            {{ head }}
+        </c-slot>
+    </c-head>
+<body>
+    {{ slot }}
+</body>
+</html
