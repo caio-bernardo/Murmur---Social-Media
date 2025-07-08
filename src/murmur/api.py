@@ -10,7 +10,7 @@ from apps.posts.apis import router as posts_router
 from apps.comments.apis import router as comments_router
 from apps.reactions.apis import router as reactions_router
 
-app = NinjaAPI()
+app = NinjaAPI(title="Murmur API")
 
 app.add_router("/token", tags=["Auth"], router=obtain_pair_router)
 app.add_router("/accounts", tags=["Account"], router=accounts_router)
